@@ -12,11 +12,10 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    if: |
+      github.event.pull_request.author_association == 'MEMBER' ||
+      github.event.pull_request.author_association == 'OWNER' ||
+      github.event.pull_request.author_association == 'COLLABORATOR'
 
     runs-on: ubuntu-latest
     permissions:
@@ -39,6 +38,13 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
+          claude_args: |
+            --system-prompt "Você é um revisor sênior Python/Django. Revise em português. Foque em: segurança (OWASP), queries N+1, lógica de negócio e aderência ao CLAUDE.md do projeto."
+            --json-schema '{"type":"object","properties":{"has_critical_issues":{ "summary":{"type":"string"},"risk_level":{"type":"string","enum":["low","medium","high"]}},"required":["has_critical_issues","risk_level","summary"]}'
 
+      - name: Bloqueia merge se crítico
+        if: fromJSON(steps.claude-review.outputs.structured_output).has_critical_issues == true
+        run: |
+          RISK=${{ fromJSON(steps.claude-review.outputs.structured_output).risk_level }}
+          echo "❌ Risk level: $RISK — merge bloqueado"
+          exit 1
