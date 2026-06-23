@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Run Claude Code Review
+            - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
@@ -39,12 +39,13 @@ jobs:
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           claude_args: |
-            --system-prompt "Você é um revisor sênior Python/Django. Revise em português. Foque em: segurança (OWASP), queries N+1, lógica de negócio e aderência ao CLAUDE.md do projeto."
-            --json-schema '{"type":"object","properties":{"has_critical_issues":{ "summary":{"type":"string"},"risk_level":{"type":"string","enum":["low","medium","high"]}},"required":["has_critical_issues","risk_level","summary"]}'
+            --max-turns 15
+            --system-prompt "Revisor sênior Python/Django. Revise em português. Foque em segurança, queries N+1, e padrões do projeto."
+            --json-schema .github/claude-review-schema.json
 
       - name: Bloqueia merge se crítico
         if: fromJSON(steps.claude-review.outputs.structured_output).has_critical_issues == true
         run: |
-          RISK=${{ fromJSON(steps.claude-review.outputs.structured_output).risk_level }}
+          RISK="${{ fromJSON(steps.claude-review.outputs.structured_output).risk_level }}"
           echo "❌ Risk level: $RISK — merge bloqueado"
           exit 1

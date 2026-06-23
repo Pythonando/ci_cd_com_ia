@@ -1,0 +1,9 @@
+{
+    "type": "object",
+    "properties": {
+      "has_critical_issues": {"type": "boolean"},
+      "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
+      "summary": {"type": "string"}
+    },
+    "required": ["has_critical_issues", "risk_level", "summary"]
+  }
