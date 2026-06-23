@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
+      pull-requests: write
       id-token: write
 
     steps:
@@ -69,7 +69,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.base.ref }}
-
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Gerar Release Notes
         uses: anthropics/claude-code-action@v1
         with:
