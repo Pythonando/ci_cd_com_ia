@@ -99,3 +99,6 @@ jobs:
 
             3. Faça commit com a mensagem "docs: release notes PR #${{ github.event.pull_request.number }}"
             4. Faça push direto na branch ${{ github.event.pull_request.base.ref }}
+          claude_args: |
+            --max-turns 15
+            --dangerously-skip-permissions
